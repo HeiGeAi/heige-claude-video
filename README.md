@@ -1,8 +1,17 @@
 # heige-claude-video
 
-**用 Claude Code 日更 AI 科普视频的完整生产系统。**
+**用 Claude Code 日更 AI 科普视频的完整生产系统，外加一套 341 种代码动画风格提示词库。**
 
 给它一句选题或一段口播稿，它按固定生产线走完文案、配音、逐词卡点、原理动画、质检、封面和发布文案，产出一条 16:9 成片。这套流程来自个人 IP「问问黑哥」的真实日更实践（每天一条，持续更新中），不是理论方案。
+
+仓库分两部分：
+
+| 部分 | 是什么 | 来源 |
+|---|---|---|
+| `skills/heige-claude-video/` | 视频生产系统：方法、规范、自查清单、全流程规则 | 本仓库原创 |
+| `skills/code-animation-prompts/` | 风格提示词库：341 种风格提示词、193 张参考静帧、离线挑选器、HTML 渲染工具 | 完整收录自 [XiaoyeCodes/code-animation-prompts](https://github.com/XiaoyeCodes/code-animation-prompts)（原始素材整理者：B 站 俯仰观照 等），来源与许可文件随目录保留 |
+
+两者配合使用：生产系统决定「怎么做出一条合格的视频」，风格库提供「这一段想要什么画面质感」的参考。风格库按编号选型，画一段 12 秒的风格动画；生产系统管整条片的流程和验收。
 
 ## 为什么做这个
 
@@ -34,7 +43,7 @@
 git clone https://github.com/HeiGeAi/heige-claude-video.git
 cd heige-claude-video
 
-# 安装给 Claude Code
+# 安装全部技能（生产系统 + 风格库）给 Claude Code
 python scripts/install_skill.py --target claude
 
 # 或安装给 Codex
@@ -42,44 +51,64 @@ python scripts/install_skill.py --target codex
 
 # 两者都装
 python scripts/install_skill.py --target both
+
+# 只装其中一个
+python scripts/install_skill.py --target claude --only heige-claude-video
+python scripts/install_skill.py --target claude --only code-animation-prompts
 ```
 
-安装脚本只复制 `skills/heige-claude-video/` 到对应技能目录，不下载任何依赖，已有同名技能时会停下并保留现有内容。
+安装脚本只复制 `skills/` 下的技能目录到对应技能目录，不下载任何依赖，已有同名技能时会停下并保留现有内容。
 
 ## 装好以后，直接这样说
 
 ```text
+# 生产系统
 用 heige-claude-video 把这份稿子做成原理动画视频，逐词卡点，出三张封面和发布文案。
 
 用 heige-claude-video 讲清楚「Token 到底是什么」，2.5 到 3.5 分钟，
 要有获得物，开头 10 秒讲明看完能得到什么。
 
-用 heige-claude-video 只做封面：三张（3:4、4:3、16:9），标题是「……」。
+# 风格库（按编号选风格做单段动画）
+用 code-animation-prompts 用 B3 粒子聚形做一段 12 秒横屏动画，
+主题是「把想法变成现实」，1920×1080，30fps，带中文字幕，无声。
+
+# 两者配合
+用 code-animation-prompts 帮我挑 3 个适合讲「AI 为什么会胡说八道」的风格，
+再用 heige-claude-video 的规范做成整条片子。
 ```
 
-视频本体由你自己的渲染管线（推荐 Remotion）实现，本 skill 提供方法、规范、自查清单和全流程规则；不自动发布。
+视频本体由你自己的渲染管线（推荐 Remotion）实现，本仓库提供方法、规范、自查清单和全流程规则；不自动发布。
 
 ## 仓库结构
 
 ```text
 heige-claude-video/
 ├── README.md
-├── LICENSE
+├── LICENSE                               # MIT，只覆盖本仓库原创部分
 ├── docs/
+│   ├── SHOWCASE.md
+│   ├── code-animation-prompts-LICENSE.md # 收录部分的来源与使用约定
+│   └── code-animation-prompts-README.md  # 收录部分的完整说明
 ├── scripts/
-│   └── install_skill.py            # 安装器
-└── skills/heige-claude-video/
-    ├── SKILL.md                    # 技能入口：流程总览和硬规则
-    └── references/
-        ├── production-pipeline.md  # 出片全流程：建工程、配音、回读、时间轴、混音、渲染
-        ├── writing-rules.md        # 口播稿硬规则：获得物、只听也懂、开头结尾、流量手法
-        ├── animation-system.md     # 视觉系统：画幅、品牌层、信息层、颜色、字体、卡字
-        ├── animation-techniques.md # 动效技法库：六类视觉强调和常用图解模式
-        ├── qa-and-delivery.md      # 质检：拼图、单帧、花屏、碎片帧、PSNR、交付物
-        └── compliance.md           # 合规：红线清单和发布前检查
+│   └── install_skill.py                  # 安装器（claude / codex / both）
+└── skills/
+    ├── heige-claude-video/               # 视频生产系统（原创）
+    │   ├── SKILL.md
+    │   └── references/
+    │       ├── production-pipeline.md    # 出片全流程
+    │       ├── writing-rules.md          # 口播稿硬规则
+    │       ├── animation-system.md       # 视觉系统
+    │       ├── animation-techniques.md   # 动效技法库
+    │       ├── qa-and-delivery.md        # 质检与交付
+    │       └── compliance.md             # 合规红线
+    └── code-animation-prompts/           # 风格提示词库（收录）
+        ├── SKILL.md                      # 按编号选型、渲染接口、交付验收
+        ├── assets/library/               # 341 份提示词、193 张静帧、风格挑选.html
+        ├── references/                   # 风格索引、渲染与来源说明
+        └── scripts/                      # styles.py 检索、render_video.py 导出
 ```
 
-## 方法论地图
+## 方法论地图（生产系统）
 
 | 想解决什么 | 看哪篇 |
 |---|---|
@@ -90,14 +119,18 @@ heige-claude-video/
 | 渲染完怎么证明它没有坏帧、没有穿帮 | qa-and-delivery.md |
 | 什么词不能写、发布前查什么 | compliance.md |
 
+风格库的用法看它自带的 `skills/code-animation-prompts/SKILL.md` 和 `docs/code-animation-prompts-README.md`。
+
 ## 实际效果
 
 用这套流程产出的视频在抖音、B站、小红书、视频号日更更新（IP：问问黑哥）。样片截图和工程示例会陆续补充进 `docs/`。
 
-## 致谢与同类项目
+## 收录说明与致谢
 
-方法论和全部文档为本项目原创，来自「问问黑哥」的真实生产实践。同类项目推荐 [code-animation-prompts](https://github.com/XiaoyeCodes/code-animation-prompts)：341 种代码动画风格提示词合集，适合按风格选型做单段动画；本项目的重心不同，是端到端的日更生产系统。
+- `skills/code-animation-prompts/` 目录为完整收录，未做内容修改；收录自 [XiaoyeCodes/code-animation-prompts](https://github.com/XiaoyeCodes/code-animation-prompts)（commit 69ccbea，2026-10-29）。该仓库在原始素材基础上做了技能封装、工具脚本和文档；原始素材整理者是 B 站 UP 主 **俯仰观照**，另含 **LemoLab（Lemo-Opuscar）**、**Vincentwei1021（mg-styles-15）**、**Bae-ChangHyun（code-video）** 的第三方风格集。
+- 收录部分**不适用本仓库的 MIT**，继续遵循其自带约定：免费使用、免费分享，请勿包装成付费课程、付费 skills 或其他收费内容出售；第三方风格集继续适用其各自许可。详见 `docs/code-animation-prompts-LICENSE.md` 和库内 `assets/library/许可与来源.md`、`assets/library/第三方许可/`。
+- 本仓库不把收录素材重新声明为自己的原创；`skills/heige-claude-video/` 下的生产系统文档为原创，适用 MIT。
 
 ## License
 
-MIT。可以自由使用、修改、分发，请保留本仓库的原创声明。
+本仓库原创部分（生产系统文档、安装脚本）采用 MIT。收录的风格库部分沿用其自带许可，见上方收录说明。
