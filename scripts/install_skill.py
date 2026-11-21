@@ -29,12 +29,16 @@ def install_one(skill_dir: Path, target_base: Path) -> int:
     if not skill_dir.is_dir():
         print(f"跳过：源目录不存在 {skill_dir}", file=sys.stderr)
         return 2
-    if dest.exists():
+    if dest.exists() or dest.is_symlink():
         print(f"跳过：{dest} 已存在，保留现有内容，不做覆盖。")
         print("如需重装，请先手动备份并删除该目录。")
         return 1
     dest.parent.mkdir(parents=True, exist_ok=True)
-    shutil.copytree(skill_dir, dest)
+    shutil.copytree(
+        skill_dir,
+        dest,
+        ignore=shutil.ignore_patterns("__pycache__", "*.pyc", ".DS_Store"),
+    )
     n = sum(1 for p in dest.rglob("*") if p.is_file())
     print(f"已安装 {skill_dir.name} → {dest}（{n} 个文件）。")
     return 0
@@ -59,9 +63,11 @@ def main() -> int:
     skill_dirs = sorted(p for p in SKILLS_ROOT.iterdir() if p.is_dir())
     if args.only:
         wanted = set(args.only)
+        available = {d.name for d in skill_dirs}
+        unknown = sorted(wanted - available)
+        if unknown:
+            parser.error(f"skills/ 下找不到：{', '.join(unknown)}")
         skill_dirs = [d for d in skill_dirs if d.name in wanted]
-        if not skill_dirs:
-            parser.error(f"skills/ 下找不到：{', '.join(sorted(wanted))}")
 
     targets = list(TARGETS) if args.target == "both" else [args.target]
     codes = [install_one(d, TARGETS[t]) for t in targets for d in skill_dirs]
